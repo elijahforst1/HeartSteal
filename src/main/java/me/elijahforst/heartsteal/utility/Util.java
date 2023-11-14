@@ -1,25 +1,29 @@
 package me.elijahforst.heartsteal.utility;
 
+import com.jeff_media.customblockdata.CustomBlockData;
+import me.elijahforst.heartsteal.HeartSteal;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 public class Util {
+    private static String PDC_KEY_IS_HEART = "is_heart";
+    private static String PDC_KEY_IS_RESPAWN_ITEM = "is_respawn_item";
+
+    private static String PDC_KEY_IS_PROTECTED = "is_protected";
 
     private static boolean heartLossSwitch = true;
-    private static HashMap<UUID, Long> combatList = new HashMap<UUID, Long>();
-
-    private static HashMap<Block, Boolean> protectList = new HashMap<Block, Boolean>();
 
     public static double getHearts(Player p) {
         return p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
@@ -31,58 +35,50 @@ public class Util {
 
 
     public static boolean getHeartLossSwitch() {
-        return heartLossSwitch;
+        return HeartSteal.getInstance().getConfig().getBoolean("heart_loss", true);
     }
 
     public static void setHeartLossSwitch(boolean heartLossSwitch) {
-        Util.heartLossSwitch = heartLossSwitch;
-    }
-
-    public static void addCombatTag(Player p){
-        combatList.put(p.getUniqueId(),System.currentTimeMillis());
-        p.sendMessage(ChatColor.RED + "You are now combat logged for 30 seconds. Do not log out!");
-    }
-
-    public static boolean getCombatTag(Player p){
-        if(!combatList.containsKey(p.getUniqueId())) {
-            combatList.put(p.getUniqueId(), System.currentTimeMillis() - 30001);
-        }
-        Long timeSinceHit = System.currentTimeMillis() - combatList.get(p.getUniqueId());
-        if(timeSinceHit <= 30000){
-            return true;
-        } else {
-            return false;
-        }
+        HeartSteal.getInstance().getConfig().set("heart_loss", heartLossSwitch);
     }
 
     public static boolean isHeart(ItemStack item) {
-        if(item.getType() == Material.NETHER_STAR && item.getItemMeta().getDisplayName().equals(ChatColor.RED + "HEART") && item.getItemMeta().hasEnchants()){
-            return true;
-        } else {
+        NamespacedKey isHeartKey = new NamespacedKey(HeartSteal.getInstance(), PDC_KEY_IS_HEART);
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
             return false;
-        }
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        return container.getOrDefault(isHeartKey, PersistentDataType.BOOLEAN, false);
     }
 
     public static ItemStack getHeartItem() {
-        ItemStack heart = new ItemStack(Material.NETHER_STAR,1);
+        ItemStack heart = new ItemStack(Material.NETHER_STAR, 1);
         ItemMeta heartMeta = heart.getItemMeta();
         heartMeta.setDisplayName(ChatColor.RED + "HEART");
 
-        //making heartlore arrayList
-        ArrayList<String> heartLore = new ArrayList<String>();
-        heartLore.add("A player heart!");
-        heartLore.add("Right click while holding to gain a heart!");
+        List<String> heartLore = Arrays.asList(
+                "A player heart!",
+                "Right click while holding to gain a heart!"
+        );
 
         heartMeta.setLore(heartLore);
-        heartMeta.addEnchant(Enchantment.DURABILITY,1,true);
+        heartMeta.addEnchant(Enchantment.DURABILITY, 1, true);
         heartMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+
+        PersistentDataContainer container = heartMeta.getPersistentDataContainer();
+
+        NamespacedKey heartItem = new NamespacedKey(HeartSteal.getInstance(), PDC_KEY_IS_HEART);
+        container.set(heartItem, PersistentDataType.BOOLEAN, true);
+
         heart.setItemMeta(heartMeta);
 
         return heart;
     }
 
     public static ItemStack getRespawnItem() {
-        ItemStack respawnBeacon = new ItemStack(Material.BEACON,1);
+        ItemStack respawnBeacon = new ItemStack(Material.BEACON, 1);
         ItemMeta respawnMeta = respawnBeacon.getItemMeta();
         respawnMeta.setDisplayName(ChatColor.AQUA + "BEACON OF LIFE");
 
@@ -95,28 +91,40 @@ public class Util {
         respawnLore.add("and will also destroy all blocks above it to the world height!");
 
         respawnMeta.setLore(respawnLore);
-        respawnMeta.addEnchant(Enchantment.CHANNELING,1,true);
+        respawnMeta.addEnchant(Enchantment.CHANNELING, 1, true);
+
+        PersistentDataContainer container = respawnMeta.getPersistentDataContainer();
+
+        NamespacedKey isRespawnItem = new NamespacedKey(HeartSteal.getInstance(), PDC_KEY_IS_RESPAWN_ITEM);
+        container.set(isRespawnItem, PersistentDataType.BOOLEAN, true);
+
         respawnBeacon.setItemMeta(respawnMeta);
 
         return respawnBeacon;
     }
 
     public static boolean isRespawnItem(ItemStack item) {
-        if(item.getType() == Material.BEACON && item.getItemMeta().getDisplayName().equals(ChatColor.AQUA + "BEACON OFF LIFE") && item.getItemMeta().hasEnchants()){
-            return true;
-        } else {
+        NamespacedKey isRespawnItem = new NamespacedKey(HeartSteal.getInstance(), PDC_KEY_IS_RESPAWN_ITEM);
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
             return false;
-        }
+
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        return container.getOrDefault(isRespawnItem, PersistentDataType.BOOLEAN, false);
     }
 
-    public static void setProtected(Block block, boolean protect){
-        protectList.put(block,protect);
+    public static void setProtected(Block block, boolean protect) {
+        NamespacedKey key = new NamespacedKey(HeartSteal.getInstance(), PDC_KEY_IS_PROTECTED);
+
+        PersistentDataContainer customBlockData = new CustomBlockData(block, HeartSteal.getInstance());
+        customBlockData.set(key, PersistentDataType.BOOLEAN, protect);
     }
 
-    public static boolean getProtected(Block block){
-        if(!protectList.containsKey(block)){
-            protectList.put(block,false);
-        }
-        return protectList.get(block);
+    public static boolean getProtected(Block block) {
+        NamespacedKey key = new NamespacedKey(HeartSteal.getInstance(), PDC_KEY_IS_PROTECTED);
+
+        PersistentDataContainer customBlockData = new CustomBlockData(block, HeartSteal.getInstance());
+        return customBlockData.getOrDefault(key, PersistentDataType.BOOLEAN, false);
     }
 }
