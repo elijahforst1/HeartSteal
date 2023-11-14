@@ -1,0 +1,28 @@
+name: HeartSteal
+version: '${project.version}'
+main: me.elijahforst.heartsteal.HeartSteal
+api-version: '1.20'
+commands:
+  givehearts:
+    description: Gives hearts to target player
+    usage: /<command> [Player] [Amount]
+    permission: heartsteal.givehearts
+  takehearts:
+    description: Takes hearts from target player
+    usage: /<command> [Player] [Amount]
+    permission: heartsteal.takehearts
+  giveheartitem:
+    description: Gives target player heart item
+    usage: /<command> [Player] [Amount]
+    permission: heartsteal.giveitemhearts
+  toggleheartloss:
+    description: Enables or disables heart loss on death
+    usage: /<command>
+    permission: heartsteal.toggleheartloss
+  withdrawhearts:
+    description: Withdraws hearts into a item you can give other players
+    usage: /<command> [Amount]
+  combattag:
+    description: Combat tags target player
+    usage: /<command> [Player]
+    permission: heartsteal.combattag
