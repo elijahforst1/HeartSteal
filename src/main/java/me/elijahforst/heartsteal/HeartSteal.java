@@ -3,6 +3,7 @@ package me.elijahforst.heartsteal;
 import me.elijahforst.heartsteal.commands.*;
 import me.elijahforst.heartsteal.listeners.*;
 import me.elijahforst.heartsteal.managers.CombatTagManager;
+import me.elijahforst.heartsteal.managers.ProtectBlocksManager;
 import me.elijahforst.heartsteal.utility.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -33,15 +34,16 @@ public final class HeartSteal extends JavaPlugin implements Listener {
         System.out.println("HeartSteal started");
 
         CombatTagManager combatTagManager = new CombatTagManager(this);
+        ProtectBlocksManager protectBlocksManager = new ProtectBlocksManager(this);
         combatTagManager.registerScheduler();
         combatTagManager.registerInteractions();
+        protectBlocksManager.registerInteractions();
 
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerRightClickListener(),this);
         getServer().getPluginManager().registerEvents(new BlockPlaceListener(),this);
         getServer().getPluginManager().registerEvents(new BlockBreakListener(),this);
-        getServer().getPluginManager().registerEvents(new BlockExplodeListener(),this);
 
         getCommand("givehearts").setExecutor(new GiveHeartsCommand());
         getCommand("takehearts").setExecutor(new TakeHeartsCommand());

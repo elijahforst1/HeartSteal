@@ -21,7 +21,6 @@ public class Util {
     private static String PDC_KEY_IS_HEART = "is_heart";
     private static String PDC_KEY_IS_RESPAWN_ITEM = "is_respawn_item";
 
-    private static String PDC_KEY_IS_PROTECTED = "is_protected";
 
     private static boolean heartLossSwitch = true;
 
@@ -114,17 +113,5 @@ public class Util {
         return container.getOrDefault(isRespawnItem, PersistentDataType.BOOLEAN, false);
     }
 
-    public static void setProtected(Block block, boolean protect) {
-        NamespacedKey key = new NamespacedKey(HeartSteal.getInstance(), PDC_KEY_IS_PROTECTED);
 
-        PersistentDataContainer customBlockData = new CustomBlockData(block, HeartSteal.getInstance());
-        customBlockData.set(key, PersistentDataType.BOOLEAN, protect);
-    }
-
-    public static boolean getProtected(Block block) {
-        NamespacedKey key = new NamespacedKey(HeartSteal.getInstance(), PDC_KEY_IS_PROTECTED);
-
-        PersistentDataContainer customBlockData = new CustomBlockData(block, HeartSteal.getInstance());
-        return customBlockData.getOrDefault(key, PersistentDataType.BOOLEAN, false);
-    }
 }
